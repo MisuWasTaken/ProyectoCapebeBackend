@@ -27,7 +27,7 @@ Dentro de esta base se crearon tres schemas para organizar la informacion de cad
 - inscripciones
 - operaciones
 
-Actualmente se encuentra funcionando el schema de vuelos.
+Actualmente se encuentran funcionando los schemas de vuelos e inscripciones.
 
 ## Microservicio de vuelos y reportes
 
@@ -52,10 +52,29 @@ Los estados disponibles para un vuelo son:
 
 Los vuelos utilizan un ID autoincremental, comenzando desde 1.
 
+## Microservicio de inscripciones
+
+El segundo microservicio desarrollado es `inscripciones-service`.
+
+Este permite:
+
+- Inscribir pasajeros en los vuelos disponibles.
+- Ver los pasajeros inscritos en un vuelo.
+- Consultar las inscripciones de un usuario.
+- Contar los pasajeros inscritos en un vuelo.
+- Cambiar una inscripcion a otro vuelo.
+- Evitar inscripciones duplicadas.
+- Comprobar que existan cupos y que el vuelo este disponible.
+- Validar que el pasajero acepte el consentimiento.
+- Controlar errores al ingresar datos incorrectos.
+
+Este microservicio consulta al de vuelos para comprobar la informacion antes de registrar una inscripcion.
+Ambos utilizan la misma base de datos, pero cada uno trabaja con su propio schema.
+
 ## Pruebas
 
-El funcionamiento del microservicio fue probado mediante Postman.
-Se comprobaron casos como:
+El funcionamiento de ambos microservicios fue probado mediante Postman.
+En vuelos se comprobaron casos como:
 
 - Creacion correcta de vuelos.
 - Busqueda de vuelos.
@@ -66,10 +85,22 @@ Se comprobaron casos como:
 - Vuelos inexistentes.
 - Estados incorrectos.
 
-Tambien se implementaron pruebas unitarias utilizando JUnit y Mockito.
-Actualmente las pruebas se ejecutan correctamente con:
+En inscripciones se comprobaron casos como:
 
-`BUILD SUCCESS`
+- Creacion y consulta de inscripciones.
+- Inscripciones duplicadas.
+- Consentimiento no aceptado.
+- Vuelos sin cupos o no disponibles.
+- Cambio de vuelo.
+- Cantidad de pasajeros inscritos.
+- Datos incorrectos.
+- Caida del servicio de vuelos, devolviendo un error controlado.
+
+Tambien se implementaron pruebas unitarias utilizando JUnit y Mockito en ambos microservicios.
+Actualmente las pruebas funcionaron correctamente, arrojando el resultado de:
+
+- Vuelos y reportes: 8 pruebas correctas.
+- Inscripciones: 12 pruebas correctas.
 
 ## Ejecucion
 
@@ -78,21 +109,23 @@ Para iniciar la base de datos:
 
 `docker compose up -d`
 
-Luego, dentro de `vuelos-reportes-service`, se inicia Spring Boot con:
+Luego, dentro de cada microservicio, se inicia Spring Boot con:
 
 `.\mvnw.cmd spring-boot:run`
 
-El servicio queda disponible localmente en:
+Los servicios quedan disponibles localmente en:
 
-`http://localhost:8081`
+- Vuelos y reportes: `http://localhost:8081`
+- Inscripciones: `http://localhost:8082`
+
+Para probar las inscripciones es necesario tener ambos microservicios funcionando.
 
 ## Estado del proyecto
 
-Actualmente se encuentra terminado el primer microservicio de vuelos y reportes.
-Los siguientes pasos son desarrollar:
+Actualmente se encuentran terminados y probados localmente los dos primeros microservicios:
 
+- vuelos-reportes-service
 - inscripciones-service
-- operaciones-service
 
-Despues se conectara el backend con la aplicacion Android mediante Retrofit.
-Finalmente, los microservicios seran desplegados en la nube y las fotografias de los pasajeros dejaran de almacenarse localmente.
+Finalmente se conectara el backend con la aplicacion Android mediante Retrofit.
+Y luego los microservicios seran desplegados en la nube y las fotografias de los pasajeros dejaran de almacenarse localmente.
