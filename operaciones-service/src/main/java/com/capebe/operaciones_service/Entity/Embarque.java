@@ -12,7 +12,7 @@ import java.time.ZoneOffset;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "embarques", schema = "operaciones", 
+@Table(name = "embarques", schema = "operaciones",
         uniqueConstraints = @UniqueConstraint(name = "uq_embarque_vuelo_inscripcion", columnNames = {"vuelo_id", "inscripcion_id"}),
         indexes = {
             @Index(name = "idx_embarque_vuelo", columnList = "vuelo_id"),

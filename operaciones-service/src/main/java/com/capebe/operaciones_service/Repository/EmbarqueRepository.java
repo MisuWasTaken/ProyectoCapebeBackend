@@ -3,12 +3,10 @@ package com.capebe.operaciones_service.Repository;
 import com.capebe.operaciones_service.Entity.Embarque;
 import com.capebe.operaciones_service.Entity.EstadoEmbarque;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
-@Repository
 public interface EmbarqueRepository extends JpaRepository<Embarque, Long> {
 
     Optional<Embarque> findByVueloIdAndInscripcionId(Long vueloId, Long inscripcionId);
