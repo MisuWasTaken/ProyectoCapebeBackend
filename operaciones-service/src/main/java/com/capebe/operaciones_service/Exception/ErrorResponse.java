@@ -1,7 +1,9 @@
 package com.capebe.operaciones_service.Exception;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 
-public record ErrorResponse(int status, String mensaje, OffsetDateTime fecha) {
-}
-
+public record ErrorResponse(
+        int status,
+        String message,
+        LocalDateTime timestamp
+) {}
