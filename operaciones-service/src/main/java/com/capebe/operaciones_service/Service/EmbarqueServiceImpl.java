@@ -22,9 +22,8 @@ public class EmbarqueServiceImpl implements EmbarqueService {
     private final SupabaseService supabaseService;
     private final ConsultaInscripcion consultaInscripcion;
 
-    public EmbarqueServiceImpl(EmbarqueRepository embarqueRepository,
-                               SupabaseService supabaseService,
-                               ConsultaInscripcion consultaInscripcion) {
+    public EmbarqueServiceImpl(EmbarqueRepository embarqueRepository, SupabaseService supabaseService,
+                              ConsultaInscripcion consultaInscripcion) {
         this.embarqueRepository = embarqueRepository;
         this.supabaseService = supabaseService;
         this.consultaInscripcion = consultaInscripcion;
@@ -33,52 +32,36 @@ public class EmbarqueServiceImpl implements EmbarqueService {
     @Override
     @Transactional
     public EmbarqueResponse registrarEmbarque(EmbarqueRequest request, MultipartFile foto) {
-        // 1. Comprobar que el pasajero esté inscrito en el vuelo (consultando al puerto 8082)
         consultaInscripcion.validarInscripcion(request.vueloId(), request.inscripcionId());
 
-        // 2. Evitar duplicados (que no haya dos embarques para la misma inscripción y vuelo)
         embarqueRepository.findByVueloIdAndInscripcionId(request.vueloId(), request.inscripcionId())
                 .ifPresent(e -> {
-                    throw new EmbarqueDuplicadoException("Ya existe un registro de embarque para esta inscripción en este vuelo.");
+                    throw new EmbarqueDuplicadoException("Ya existe un registro de embarque para esta inscripcion en este vuelo.");
                 });
 
-        // 3. Subir foto a Supabase si viene adjunta
-        String fotoUrl = null;
-        if (foto != null && !foto.isEmpty()) {
-            fotoUrl = supabaseService.subirFoto(foto);
-        }
+        String fotoUrl = foto != null ? supabaseService.subirFoto(foto) : null;
 
-        // 4. Crear entidad de embarque (estado inicial PENDIENTE por defecto)
         Embarque embarque = new Embarque();
         embarque.setVueloId(request.vueloId());
         embarque.setInscripcionId(request.inscripcionId());
         embarque.setEstado(EstadoEmbarque.PENDIENTE);
         embarque.setFotoUrl(fotoUrl);
 
-        Embarque guardado = embarqueRepository.save(embarque);
-
-        return convertirRespuesta(guardado);
+        return convertirRespuesta(embarqueRepository.save(embarque));
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<EmbarqueResponse> obtenerEmbarquesPorVuelo(Long vueloId) {
-        return embarqueRepository.findByVueloId(vueloId)
-                .stream()
-                .map(this::convertirRespuesta)
-                .toList();
+        return embarqueRepository.findByVueloId(vueloId).stream().map(this::convertirRespuesta).toList();
     }
 
     @Override
     @Transactional
     public EmbarqueResponse cambiarEstado(Long id, EstadoEmbarqueRequest request) {
         Embarque embarque = buscarEmbarque(id);
-
         embarque.setEstado(request.estado());
-
-        return convertirRespuesta(
-                embarqueRepository.save(embarque)
-        );
+        return convertirRespuesta(embarqueRepository.save(embarque));
     }
 
     @Override
@@ -87,13 +70,7 @@ public class EmbarqueServiceImpl implements EmbarqueService {
         long pendientes = embarqueRepository.countByVueloIdAndEstado(vueloId, EstadoEmbarque.PENDIENTE);
         long embarcados = embarqueRepository.countByVueloIdAndEstado(vueloId, EstadoEmbarque.EMBARCADO);
         long noEmbarcados = embarqueRepository.countByVueloIdAndEstado(vueloId, EstadoEmbarque.NO_EMBARCADO);
-
-        return new ReporteEmbarques(
-                pendientes,
-                embarcados,
-                noEmbarcados,
-                pendientes + embarcados + noEmbarcados
-        );
+        return new ReporteEmbarques(pendientes, embarcados, noEmbarcados, pendientes + embarcados + noEmbarcados);
     }
 
     private Embarque buscarEmbarque(Long id) {
@@ -101,15 +78,8 @@ public class EmbarqueServiceImpl implements EmbarqueService {
                 .orElseThrow(() -> new EmbarqueNoEncontradoException("Registro de embarque no encontrado."));
     }
 
-   private EmbarqueResponse convertirRespuesta(Embarque embarque) {
-        return new EmbarqueResponse(
-                embarque.getId(),
-                embarque.getVueloId(),      
-                embarque.getInscripcionId(), 
-                embarque.getEstado(),
-                embarque.getFotoUrl(),
-                embarque.getCreatedAt(),
-                embarque.getUpdatedAt()
-        );
+    private EmbarqueResponse convertirRespuesta(Embarque embarque) {
+        return new EmbarqueResponse(embarque.getId(), embarque.getVueloId(), embarque.getInscripcionId(),
+                embarque.getEstado(), embarque.getFotoUrl(), embarque.getCreatedAt(), embarque.getUpdatedAt());
     }
 }

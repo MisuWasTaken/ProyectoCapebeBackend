@@ -70,7 +70,7 @@ public class EmbarqueServiceImplTest {
     public void rechazarPasajeroNoInscrito() {
         EmbarqueRequest request = new EmbarqueRequest(1L, 999L);
 
-        doThrow(new InscripcionNoValidaException("El pasajero no está inscrito."))
+        doThrow(new InscripcionNoValidaException("El pasajero no esta inscrito."))
                 .when(consultaInscripcion).validarInscripcion(1L, 999L);
 
         assertThrows(InscripcionNoValidaException.class, () -> embarqueService.registrarEmbarque(request, null));

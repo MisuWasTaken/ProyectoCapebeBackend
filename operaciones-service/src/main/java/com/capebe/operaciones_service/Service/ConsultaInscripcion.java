@@ -1,7 +1,7 @@
 package com.capebe.operaciones_service.Service;
 
 import com.capebe.operaciones_service.Exception.InscripcionNoValidaException;
-import com.capebe.operaciones_service.Exception.SupabaseStorageException;
+import com.capebe.operaciones_service.Exception.ServicioInscripcionesException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
@@ -10,6 +10,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
 import java.time.Duration;
+import java.util.Map;
 
 @Component
 public class ConsultaInscripcion {
@@ -25,19 +26,19 @@ public class ConsultaInscripcion {
 
     public void validarInscripcion(Long vueloId, Long inscripcionId) {
         try {
-            // Consulta al microservicio de inscripciones (puerto 8082)
-            Object inscripcion = restClient.get()
+            Map<?, ?> inscripcion = restClient.get()
                     .uri("/api/v1/inscripciones/{id}", inscripcionId)
                     .retrieve()
-                    .body(Object.class);
+                    .body(Map.class);
 
-            if (inscripcion == null) {
-                throw new InscripcionNoValidaException("El servicio de inscripciones no devolvió información.");
+            if (inscripcion == null || !(inscripcion.get("vueloId") instanceof Number id)
+                    || id.longValue() != vueloId.longValue()) {
+                throw new InscripcionNoValidaException("La inscripcion no corresponde al vuelo indicado.");
             }
         } catch (HttpClientErrorException.NotFound e) {
-            throw new InscripcionNoValidaException("El pasajero no se encuentra inscrito (Inscripción no encontrada).");
+            throw new InscripcionNoValidaException("La inscripcion no existe.");
         } catch (RestClientException e) {
-            throw new SupabaseStorageException("No fue posible comunicarse con el servicio de inscripciones (puerto 8082).");
+            throw new ServicioInscripcionesException("No fue posible consultar el servicio de inscripciones.", e);
         }
     }
 }

@@ -1,11 +1,10 @@
 package com.capebe.operaciones_service.Dto;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
 public record EmbarqueRequest(
-        @NotNull(message = "El ID del vuelo es obligatorio.")
-        Long vueloId,
-
-        @NotNull(message = "El ID de la inscripción es obligatorio.")
-        Long inscripcionId
-) {}
+        @NotNull @Positive Long vueloId,
+        @NotNull @Positive Long inscripcionId
+) {
+}
