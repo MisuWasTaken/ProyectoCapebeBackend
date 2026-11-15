@@ -48,9 +48,9 @@ public class EmbarqueServiceImplTest {
 
         doNothing().when(consultaInscripcion).validarInscripcion(1L, 100L);
         when(embarqueRepository.findByVueloIdAndInscripcionId(1L, 100L)).thenReturn(Optional.empty());
-        when(supabaseService.subirFoto(foto)).thenReturn("https://supabase.co/foto.jpg");
+        when(supabaseService.subirFoto(foto)).thenReturn("\"foto.jpg\"  ");
 
-        Embarque embarqueGuardado = crearEmbarquePrueba(1L, 1L, 100L, EstadoEmbarque.PENDIENTE, "https://supabase.co/foto.jpg");
+        Embarque embarqueGuardado = crearEmbarquePrueba(1L, 1L, 100L, EstadoEmbarque.PENDIENTE, "\"foto.jpg\"  ");
         when(embarqueRepository.save(any(Embarque.class))).thenReturn(embarqueGuardado);
 
         EmbarqueResponse respuesta = embarqueService.registrarEmbarque(request, foto);
@@ -60,7 +60,7 @@ public class EmbarqueServiceImplTest {
         assertEquals(1L, respuesta.vueloId());
         assertEquals(100L, respuesta.inscripcionId());
         assertEquals(EstadoEmbarque.PENDIENTE, respuesta.estado());
-        assertEquals("https://supabase.co/foto.jpg", respuesta.fotoUrl());
+        assertEquals("\"foto.jpg\"  ", respuesta.fotoUrl());
 
         verify(consultaInscripcion, times(1)).validarInscripcion(1L, 100L);
         verify(embarqueRepository, times(1)).save(any(Embarque.class));
