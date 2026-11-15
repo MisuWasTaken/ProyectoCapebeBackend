@@ -53,7 +53,6 @@ public class SupabaseService {
 
         try {
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(supabaseKey);
             headers.set("apikey", supabaseKey);
             headers.setContentType(MediaType.parseMediaType(tipo));
 
@@ -65,6 +64,7 @@ public class SupabaseService {
             }
             return nombreArchivo;
         } catch (IOException | RestClientException e) {
+            System.err.println("Error Supabase: " + e.getMessage());
             throw new SupabaseStorageException("No fue posible subir la foto a Supabase Storage.", e);
         }
     }
