@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
+import java.util.UUID;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
@@ -23,6 +23,9 @@ public class Inscripcion {
 
      @Column(name = "usuario_id", nullable = false)
      private Long usuarioId;
+
+     @Column(name = "usuario_auth_id")
+     private UUID usuarioAuthId;
 
      @Column(name = "vuelo_id", nullable = false)
      private Long vueloId;

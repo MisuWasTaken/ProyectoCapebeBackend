@@ -12,6 +12,7 @@ import com.capebe.inscripciones_service.Repository.InscripcionesRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.UUID;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -35,7 +36,7 @@ public class InscripcionServiceImpl implements InscripcionService {
 
     @Override
     @Transactional
-    public InscripcionResponse crear(InscripcionRequest request) {
+    public InscripcionResponse crear(InscripcionRequest request, UUID usuarioAuthId) {
         if (!Boolean.TRUE.equals(request.consentimientoAceptado())) {
             throw new ConflictoInscripcionException("Primero debe aceptar el consentimiento para inscribirte.");
         }
@@ -44,14 +45,14 @@ public class InscripcionServiceImpl implements InscripcionService {
 
         vueloLock.bloquear(vuelo.id());
         String email = normalizarEmail(request.email());
-
-        if (inscripcionesRepository.existsByEmailIgnoreCaseAndVueloId(email, vuelo.id())) {
-            throw new ConflictoInscripcionException("Ya existe una inscripcion para este usuario y vuelo.");
+        if (inscripcionesRepository.existsByUsuarioAuthIdAndVueloId(usuarioAuthId, vuelo.id())) {
+            throw new ConflictoInscripcionException("Ya estas inscrito en este vuelo.");
         }
         comprobarCupos(vuelo);
 
         Inscripcion inscripcion = new Inscripcion();
         inscripcion.setUsuarioId(request.usuarioId());
+        inscripcion.setUsuarioAuthId(usuarioAuthId);
         inscripcion.setVueloId(vuelo.id());
         inscripcion.setNombre(request.nombre().trim());
         inscripcion.setEmail(email);
@@ -95,6 +96,13 @@ public class InscripcionServiceImpl implements InscripcionService {
     @Transactional(readOnly = true)
     public long contarPorVuelo(Long vueloId) {
         return inscripcionesRepository.countByVueloId(vueloId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<InscripcionResponse> obtenerPorUsuarioAuthId(UUID usuarioAuthId) {
+        return inscripcionesRepository.findByUsuarioAuthIdOrderByIdAsc(usuarioAuthId)
+        .stream().map(this::convertir).toList();
     }
 
     @Override
@@ -159,8 +167,16 @@ public class InscripcionServiceImpl implements InscripcionService {
     }
 
     private InscripcionResponse convertir(Inscripcion inscripcion) {
-        return new InscripcionResponse(inscripcion.getId(), inscripcion.getUsuarioId(),
-                inscripcion.getVueloId(), inscripcion.getNombre(), inscripcion.getEmail(),
-                inscripcion.getConsentimientoAceptado(), inscripcion.getCreatedAt(), inscripcion.getUpdatedAt());
-    }
+        return new InscripcionResponse(
+            inscripcion.getId(),
+            inscripcion.getUsuarioId(),
+            inscripcion.getVueloId(),
+            inscripcion.getNombre(),
+            inscripcion.getEmail(),
+            inscripcion.getConsentimientoAceptado(),
+            inscripcion.getCreatedAt(),
+            inscripcion.getUpdatedAt(),
+            inscripcion.getUsuarioAuthId()
+    );
+}
 }
