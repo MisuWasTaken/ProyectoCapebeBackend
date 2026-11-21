@@ -120,7 +120,6 @@ Los microservicios exponen endpoints REST para realizar operaciones sobre los vu
 - `GET`: consultar información.
 - `POST`: registrar información.
 - `PUT`: actualizar registros.
-- `DELETE`: eliminar registros.
 
 La aplicación Android ocupa estos servicios mediante Retrofit, enviando los datos necesarios y los tokens de autenticación correspondientes.
 
@@ -136,4 +135,4 @@ Los tres microservicios se encuentran desarrollados y desplegados en Render, uti
 
 La aplicación Android está integrada con el backend, permitiendo gestionar vuelos, inscripciones y participación de pasajeros.
 
-Se generó una APK firmada digitalmente para su instalación en dispositivos Android.
+Se generó una APK firmada para instalar la aplicacion en dispositivos Android.
