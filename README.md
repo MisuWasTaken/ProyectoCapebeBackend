@@ -1,37 +1,42 @@
 # Proyecto CAPEBE Backend
-Backend del proyecto CAPEBE, desarrollado para gestionar la informacion de los vuelos recreativos de la aplicacion movil.
-La idea del proyecto es separar la aplicacion Android del manejo de los datos y la logica principal, utilizando microservicios desarrollados con Spring Boot.
+
+La idea del proyecto es separar la aplicación Android del manejo de los datos y la lógica principal, utilizando tres microservicios desarrollados con Spring Boot, conectados a una base de datos PostgreSQL y desplegados en la nube.
 
 ## Integrantes
 
 - Francisco Riveros
 - Victoria Rivera
 
-## Tecnologias utilizadas
+## Tecnologías utilizadas
 
-- Java
+- Java 21
 - Spring Boot
 - PostgreSQL
+- Supabase
 - Docker
 - Maven
 - JUnit
 - Mockito
 - Postman
+- Render
 
 ## Base de datos
 
-El proyecto utiliza una sola base de datos PostgreSQL llamada `capebe_db`.
-Dentro de esta base se crearon tres schemas para organizar la informacion de cada microservicio:
+El proyecto utiliza PostgreSQL, alojado en Supabase.
 
-- vuelos
-- inscripciones
-- operaciones
+Para organizar la informacion de los microservicios se utilizan tres esquemas:
 
-Actualmente se encuentran funcionando los schemas de vuelos e inscripciones.
+- `vuelos`: información de los vuelos registrados.
+- `inscripciones`: inscripciones de pasajeros a los vuelos.
+- `operaciones`: control operativo y participacion de pasajeros.
+
+También se utiliza Supabase Auth para gestionar la autenticación de los usuarios y Supabase Storage para almacenar sus fotos de identificación.
+
+Los tres microservicios trabajan sobre la misma base de datos pero de forma separada.
 
 ## Microservicio de vuelos y reportes
 
-El primer microservicio desarrollado es `vuelos-reportes-service`.
+El primer microservicio es `vuelos-reportes-service`.
 
 Este permite:
 
@@ -39,7 +44,7 @@ Este permite:
 - Ver todos los vuelos registrados.
 - Buscar un vuelo por su ID.
 - Cambiar el estado de un vuelo.
-- Generar un reporte general de vuelos.
+- Generar reportes de vuelos.
 - Validar fechas, horarios y cupos.
 - Controlar errores al ingresar datos incorrectos.
 
@@ -50,82 +55,85 @@ Los estados disponibles para un vuelo son:
 - FINALIZADO
 - CANCELADO
 
-Los vuelos utilizan un ID autoincremental, comenzando desde 1.
+Los vuelos utilizan un ID autoincremental.
 
 ## Microservicio de inscripciones
 
-El segundo microservicio desarrollado es `inscripciones-service`.
+El segundo microservicio es `inscripciones-service`.
 
 Este permite:
 
-- Inscribir pasajeros en los vuelos disponibles.
-- Ver los pasajeros inscritos en un vuelo.
+- Inscribir pasajeros en vuelos disponibles.
+- Consultar los pasajeros inscritos en un vuelo.
 - Consultar las inscripciones de un usuario.
-- Contar los pasajeros inscritos en un vuelo.
-- Cambiar una inscripcion a otro vuelo.
+- Contar los pasajeros inscritos.
+- Cambiar una inscripción a otro vuelo.
 - Evitar inscripciones duplicadas.
-- Comprobar que existan cupos y que el vuelo este disponible.
-- Validar que el pasajero acepte el consentimiento.
+- Comprobar los cupos disponibles.
+- Validar el consentimiento del pasajero.
 - Controlar errores al ingresar datos incorrectos.
 
-Este microservicio consulta al de vuelos para comprobar la informacion antes de registrar una inscripcion.
-Ambos utilizan la misma base de datos, pero cada uno trabaja con su propio schema.
+Este microservicio se comunica con el servicio de vuelos para validar la información antes de registrar una inscripción.
+
+## Microservicio de operaciones
+
+El tercer microservicio es `operaciones-service`.
+
+Este permite:
+
+- Gestionar el control de participacion de los pasajeros.
+- Consultar información de las inscripciones.
+- Registrar si un pasajero asistió o no asistio.
+- Actualizar la información de participación.
+- Validar los datos antes de realizar las operaciones.
+
+Este microservicio se comunica con el servicio de inscripciones para comprobar la información de los pasajeros y sus vuelos.
+
+## Autenticación y seguridad
+
+La aplicacion utiliza Supabase Auth para registrar y autenticar usuarios.
+
+Una vez iniciada la sesión, Android obtiene un token de autenticación que se utiliza para realizar solicitudes protegidas a los microservicios.
+
+El backend valida los tokens y controla el acceso a las operaciones según los permisos del usuario.
+
+La información de autenticación se mantiene separada de la lógica de los vuelos, inscripciones y operaciones.
+
+## Integración con Android
+
+Los microservicios se encuentran conectados con la aplicación móvil CAPEBE.
+
+La comunicación se realiza mediante Retrofit.
+
+Las operaciones realizadas desde la aplicación utilizan la base de datos centralizada, permitiendo que la información se comparta entre dispositivos.
+
+## Despliegue en la nube
+
+Los tres microservicios están desplegados en Render y utilizan Supabase como servicio de base de datos.
+
+Al utilizar el plan gratuito de Render, los servicios entran en reposo después de un rato de inactividad y pueden demorar en responder a las primeras solicitudes.
+
+## Endpoints
+
+Los microservicios exponen endpoints REST para realizar operaciones sobre los vuelos, inscripciones y participación.
+
+- `GET`: consultar información.
+- `POST`: registrar información.
+- `PUT`: actualizar registros.
+- `DELETE`: eliminar registros.
+
+La aplicación Android ocupa estos servicios mediante Retrofit, enviando los datos necesarios y los tokens de autenticación correspondientes.
 
 ## Pruebas
 
-El funcionamiento de ambos microservicios fue probado mediante Postman.
-En vuelos se comprobaron casos como:
+Los microservicios fueron probados mediante Postman, comprobando tanto operaciones correctas como situaciones de error.
 
-- Creacion correcta de vuelos.
-- Busqueda de vuelos.
-- Cambio de estado.
-- Generacion del reporte.
-- Cupos invalidos.
-- Fechas pasadas.
-- Vuelos inexistentes.
-- Estados incorrectos.
-
-En inscripciones se comprobaron casos como:
-
-- Creacion y consulta de inscripciones.
-- Inscripciones duplicadas.
-- Consentimiento no aceptado.
-- Vuelos sin cupos o no disponibles.
-- Cambio de vuelo.
-- Cantidad de pasajeros inscritos.
-- Datos incorrectos.
-- Caida del servicio de vuelos, devolviendo un error controlado.
-
-Tambien se implementaron pruebas unitarias utilizando JUnit y Mockito en ambos microservicios.
-Actualmente las pruebas funcionaron correctamente, arrojando el resultado de:
-
-- Vuelos y reportes: 8 pruebas correctas.
-- Inscripciones: 12 pruebas correctas.
-
-## Ejecucion
-
-PostgreSQL se ejecuta mediante Docker.
-Para iniciar la base de datos:
-
-`docker compose up -d`
-
-Luego, dentro de cada microservicio, se inicia Spring Boot con:
-
-`.\mvnw.cmd spring-boot:run`
-
-Los servicios quedan disponibles localmente en:
-
-- Vuelos y reportes: `http://localhost:8081`
-- Inscripciones: `http://localhost:8082`
-
-Para probar las inscripciones es necesario tener ambos microservicios funcionando.
+También se implementaron pruebas unitarias utilizando JUnit y Mockito en el backend.
 
 ## Estado del proyecto
 
-Actualmente se encuentran terminados y probados localmente los dos primeros microservicios:
+Los tres microservicios se encuentran desarrollados y desplegados en Render, utilizando PostgreSQL en Supabase.
 
-- vuelos-reportes-service
-- inscripciones-service
+La aplicación Android está integrada con el backend, permitiendo gestionar vuelos, inscripciones y participación de pasajeros.
 
-Finalmente se conectara el backend con la aplicacion Android mediante Retrofit.
-Y luego los microservicios seran desplegados en la nube y las fotografias de los pasajeros dejaran de almacenarse localmente.
+Se generó una APK firmada digitalmente para su instalación en dispositivos Android.
